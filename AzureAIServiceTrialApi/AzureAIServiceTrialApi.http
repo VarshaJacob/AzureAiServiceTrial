@@ -1,0 +1,6 @@
+@AzureAIServiceTrialApi_HostAddress = http://localhost:7184
+
+GET {{AzureAIServiceTrialApi_HostAddress}}/aiservice/
+Accept: application/json
+
+###

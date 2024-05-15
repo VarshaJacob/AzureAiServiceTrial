@@ -1,0 +1,42 @@
+﻿@page "/webscrapper"
+@inject HttpClient httpClient
+
+<h3>WebScrapperTrial</h3>
+<InputText @bind-Value=@Url></InputText>
+
+<button class="btn btn-primary" @onclick="StartScrapping">Start Scrapping</button>
+<p></p>
+
+<h4>Use own data</h4>
+<InputText @bind-Value=@Question></InputText>
+<button class="btn btn-primary" @onclick="AskQuestion">Chat</button>
+<p>Answer:</p>
+<p>@Answer</p>
+
+@code {
+    private string Url { get; set; } = null;
+    private string Question { get; set; } = null;
+    private string Answer { get; set; } = null;
+
+    private async Task StartScrapping()
+    {
+        // var webscarpper = new IronWebScraperTrial();
+        // webscarpper.Start();
+
+        await httpClient.GetAsync($"https://localhost:7194/api/webscraper?url={Url}");
+    }
+
+    private async Task AskQuestion()
+    {
+        try
+        {
+            Answer = await httpClient.GetStringAsync($"https://localhost:7194/aiservice/owndata?question={Question}");
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+
+}

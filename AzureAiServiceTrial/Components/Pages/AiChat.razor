@@ -1,0 +1,78 @@
+﻿@page "/aichat"
+@using Azure.Storage.Blobs
+@rendermode InteractiveServer
+@inject HttpClient httpClient
+
+
+<PageTitle>AI Chat</PageTitle>
+
+<h3>AiChat</h3>
+
+<h4>Common</h4>
+<InputText @bind-Value=@Question1></InputText>
+<button class="btn btn-primary" @onclick="AskQuestion1">Chat</button>
+<p>Answer:</p>
+<p>@Answer1</p>
+
+<br />
+
+<h4>Use own data</h4>
+<InputFile OnChange="UploadFile"></InputFile>
+<InputText @bind-Value=@Question2></InputText>
+<button class="btn btn-primary" @onclick="AskQuestion2">Chat</button>
+<p>Answer:</p>
+<p>@Answer2</p>
+
+@code {
+    private string Question1 { get; set; } = null;
+    private string Answer1 { get; set; } = null;
+
+    private string Question2 { get; set; } = null;
+    private string Answer2 { get; set; } = null;
+
+    private async Task AskQuestion1()
+    {
+        try
+        {
+            Answer1 = await httpClient.GetFromJsonAsync<string>($"https://localhost:7194/aiservice/question={Question1}");
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var connectionString = "DefaultEndpointsProtocol=https;AccountName=blobvj;AccountKey=XZL1m/pPifsD3qNkPh4LhPqBl7ECHgGSyphBNBCIywdoRrBKF3DJfGNz55MDicxKoStePYSlgTOa+AStjMRoMg==;EndpointSuffix=core.windows.net";
+            var containerName = "fileupload-trial";
+            var blobName = file.Name;
+
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+            await blobClient.UploadAsync(file.OpenReadStream(), true);
+
+            // var aiservice = new AiService();
+            // await aiservice.CreateSearchIndex(file.Name, file.OpenReadStream());
+        }
+
+    }
+
+    private async Task AskQuestion2()
+    {
+        try
+        {
+            Answer2 = await httpClient.GetFromJsonAsync<string>("https://localhost:7194/aiservice");
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+}
