@@ -69,7 +69,7 @@ namespace ChatUiTrial
         {
             try
             {
-                var doc = GetDocument();
+                //var doc = GetDocument();
 
                 //HtmlNodeCollection names = doc.DocumentNode.SelectNodes("//a/h2");
                // HtmlNodeCollection prices = doc.DocumentNode.SelectNodes("//div/main/ul/li/a/span");

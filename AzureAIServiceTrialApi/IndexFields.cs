@@ -1,4 +1,5 @@
 ﻿using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes.Models;
 using Microsoft.Azure.Search;
 using System.ComponentModel.DataAnnotations;
 
@@ -6,8 +7,7 @@ namespace AzureAIServiceTrialApi
 {
     public class IndexFields
     {
-        [Key]
-        [IsFilterable, IsSortable]
+        [SearchableField(IsFilterable = true, IsSortable = true, IsFacetable = true)]
         public string id { get; set; }
 
         [SearchableField]
@@ -17,9 +17,17 @@ namespace AzureAIServiceTrialApi
         [SearchableField]
         public string content { get; set; }
 
+        [SearchableField]
+        public string contentVector { get; set; }
+
+        [SearchableField(IsFilterable = true, IsSortable = true, IsFacetable = true)]
+        public string parent_id { get; set; }
+
         public string url { get; set; }
 
         public string filepath { get; set; }
+
+        [SearchableField(IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
         public string chunk_id { get; set; }
         public string last_updated { get; set; }
 

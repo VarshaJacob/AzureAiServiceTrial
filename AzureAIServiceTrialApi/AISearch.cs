@@ -45,11 +45,9 @@ namespace AzureAIServiceTrialApi
                 await indexerClient.CreateOrUpdateDataSourceConnectionAsync(dataSource);
 
                 //skillset
-
-                //var embeddingSkill = new AzureOpenAIEmbeddingSkill();
-
                 var spiltSkill = new List<SearchIndexerSkill>
                 {
+                    // SplitSkill to split document content into pages
                     new SplitSkill(
                         new List<InputFieldMappingEntry>
                             {
@@ -66,9 +64,68 @@ namespace AzureAIServiceTrialApi
                         MaximumPageLength = 2000,
                         PageOverlapLength = 500
                     }
+                    //,
+
+                    //new AzureOpenAIEmbeddingSkill
+                    //(
+                    //    new List<InputFieldMappingEntry>
+                    //    {
+                    //        new InputFieldMappingEntry("text") { Source = "/document/pages/*" }
+                    //    },
+                    //    new List<OutputFieldMappingEntry>
+                    //    {
+                    //        new OutputFieldMappingEntry("embedding") { TargetName = "vector" }
+                    //    }
+                    //)
+                    //{
+                    //    Context = "/document/pages/*",
+                    //    Description = "Embedding skill to generate content vector",
+                    //    ResourceUri = new Uri( AIOptions.AzureOpenAIResourceUri),
+                    //    DeploymentId = AIOptions.AzureOpenAIDeploymentName,
+                    //    ApiKey = AIOptions.AzueOpenAIApiKey
+                    //}
                 };
 
-                var skillset = new SearchIndexerSkillset(AIOptions.AISkillSet, spiltSkill);
+                var skillset = new SearchIndexerSkillset(AIOptions.AISkillSet, spiltSkill)
+                {
+                    IndexProjections = new SearchIndexerIndexProjections(new[]
+                    {
+                        new SearchIndexerIndexProjectionSelector(AIOptions.AISearchIndex, parentKeyFieldName: "parent_id",
+                            sourceContext: "/document/pages/*", mappings: new[]
+                            {
+                                new InputFieldMappingEntry("content")
+                                {
+                                    Source = "/document/pages/*"
+                                },
+                                //new InputFieldMappingEntry("contentVector")
+                                //{
+                                //    Source = "/document/pages/*/vector"
+                                //},
+                                new InputFieldMappingEntry("title")
+                                {
+                                    Source = "/document/metadata_storage_name"
+                                },
+                                 new InputFieldMappingEntry("filepath")
+                                {
+                                    Source = "/document/metadata_storage_name"
+                                },
+                                  new InputFieldMappingEntry("url")
+                                {
+                                    Source = "/document/metadata_storage_path"
+                                },
+                                  new InputFieldMappingEntry("last_updated")
+                                {
+                                    Source = "/document/metadata_storage_last_modified"
+                                },
+                            })
+                    })
+                    {
+                        Parameters = new SearchIndexerIndexProjectionsParameters
+                        {
+                            ProjectionMode = IndexProjectionMode.SkipIndexingParentDocuments
+                        }
+                    }
+                };
 
                 await indexerClient.CreateOrUpdateSkillsetAsync(skillset);
 
@@ -91,13 +148,12 @@ namespace AzureAIServiceTrialApi
                     Description = "indexer without chat playground",
                     Schedule = schedule,
                     Parameters = parameters,
-                    
+
                     FieldMappings =
                     {
                         new FieldMapping("metadata_storage_name") {TargetFieldName = "filepath"},
                         new FieldMapping("metadata_storage_path") {TargetFieldName = "url"},
                         new FieldMapping("metadata_storage_last_modified") {TargetFieldName = "last_updated"},
-                        new FieldMapping("contentVector") {TargetFieldName = "chunk_id"},
                     },
                     SkillsetName = AIOptions.AISkillSet
                 };
